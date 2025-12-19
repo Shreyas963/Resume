@@ -1,0 +1,276 @@
+<!-- app/templates/results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Resume Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .result-card {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-card p, .result-card ul {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .result-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .result-card li {
+            padding: 8px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#667eea var(--score), #e0e0e0 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        .score-value {
+            position: relative;
+            z-index: 1;
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        
+        .preview {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .preview pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #555;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Analysis Results</h1>
+        
+        <div id="resultsContent"></div>
+        
+        <div class="buttons">
+            <a href="/upload" class="btn btn-primary">Analyze Another Resume</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+    
+    <script>
+        const resultsData = sessionStorage.getItem('analysisResults');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        if (!resultsData) {
+            resultsContent.innerHTML = `
+                <div class="no-results">
+                    <p style="font-size: 1.5em; margin-bottom: 20px;">📭</p>
+                    <p>No analysis results found.</p>
+                    <p style="margin-top: 10px;"><a href="/upload" style="color: #667eea;">Upload a resume</a> to get started.</p>
+                </div>
+            `;
+        } else {
+            const data = JSON.parse(resultsData);
+            displayResults(data);
+        }
+        
+        function displayResults(data) {
+            let html = '<div class="results-grid">';
+            
+            // Contact Information
+            html += `
+                <div class="result-card">
+                    <h3>📧 Contact Information</h3>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Phone:</strong> ${data.phone}</p>
+                </div>
+            `;
+            
+            // Skills
+            html += `
+                <div class="result-card">
+                    <h3>💼 Skills Found</h3>
+                    ${data.skills && data.skills.length > 0 
+                        ? '<ul>' + data.skills.map(skill => `<li>${skill}</li>`).join('') + '</ul>'
+                        : '<p>No skills detected</p>'}
+                </div>
+            `;
+            
+            // Statistics
+            html += `
+                <div class="result-card">
+                    <h3>📈 Statistics</h3>
+                    <p><strong>Word Count:</strong> ${data.word_count}</p>
+                    <p><strong>Skills Count:</strong> ${data.skills ? data.skills.length : 0}</p>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            // Match Score (if available)
+            if (data.match_score > 0) {
+                const scorePercentage = data.match_score;
+                html += `
+                    <div class="result-card" style="text-align: center;">
+                        <h3>🎯 Job Match Score</h3>
+                        <div class="score-circle" style="--score: ${scorePercentage}%">
+                            <div class="score-value">${scorePercentage}%</div>
+                        </div>
+                        <p>${getMatchMessage(scorePercentage)}</p>
+                    </div>
+                `;
+            }
+            
+            // Entities
+            if (data.entities) {
+                html += `
+                    <div class="result-card">
+                        <h3>🏢 Extracted Entities</h3>
+                        ${data.entities.organizations && data.entities.organizations.length > 0 
+                            ? '<p><strong>Organizations:</strong> ' + data.entities.organizations.slice(0, 5).join(', ') + '</p>'
+                            : ''}
+                        ${data.entities.locations && data.entities.locations.length > 0 
+                            ? '<p><strong>Locations:</strong> ' + data.entities.locations.slice(0, 5).join(', ') + '</p>'
+                            : ''}
+                    </div>
+                `;
+            }
+            
+            // Text Preview
+            if (data.text_preview) {
+                html += `
+                    <div class="result-card" style="grid-column: 1 / -1;">
+                        <h3>👀 Resume Preview</h3>
+                        <div class="preview">
+                            <pre>${data.text_preview}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultsContent.innerHTML = html;
+        }
+        
+        function getMatchMessage(score) {
+            if (score >= 70) return '🎉 Excellent match! Your resume aligns well with the job description.';
+            if (score >= 50) return '👍 Good match! Consider emphasizing relevant skills more.';
+            if (score >= 30) return '📝 Fair match. You may want to tailor your resume more closely.';
+            return '💡 Low match. Consider highlighting more relevant experience and skills.';
+        }
+    </script>
+</body>
+</html>
